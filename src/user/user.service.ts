@@ -46,6 +46,39 @@ export class UserService {
     await this.repository.insert(user);
   }
 
+  async update(id: number, userDto: UserDto) {
+    const user: User = await this.repository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new HttpException('User not found', 404);
+    }
+
+    if (userDto.password) {
+      userDto.password = await this.encrypter.getHash(userDto.password);
+    }
+
+    return this.repository.update(
+      {
+        id,
+      },
+      userDto,
+    );
+  }
+
+  async delete(id: number) {
+    const user: User = await this.repository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new HttpException('User not found', 404);
+    }
+
+    await this.repository.delete(id);
+  }
+
   async authenticate(credential: CredentialAuthDto) {
     const userByEmail = await this.repository.findOne({
       where: {

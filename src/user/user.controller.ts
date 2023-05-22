@@ -1,9 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
+  Param,
   Post,
+  Put,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -24,6 +27,25 @@ export class UserController {
   @Get()
   getAll(): Promise<UserDto[]> {
     return this.userService.getAll();
+  }
+
+  @HasRole(Role.ADMIN)
+  @UseGuards(SecurityGuard)
+  @Delete('/:id')
+  @HttpCode(204)
+  async delete(@Param('id') id: number): Promise<void> {
+    await this.userService.delete(id);
+  }
+
+  @HasRole(Role.ADMIN)
+  @UseGuards(SecurityGuard)
+  @Put('/:id')
+  @HttpCode(204)
+  async update(
+    @Param('id') id: number,
+    @Body() userDto: UserDto,
+  ): Promise<void> {
+    await this.userService.update(id, userDto);
   }
 
   @HasRole(Role.EMPLOYEE, Role.ADMIN)
