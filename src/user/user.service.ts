@@ -7,6 +7,7 @@ import { CredentialAuthDto } from './dtos/credential-auth.dto';
 import provider from 'src/common/configs/provider';
 import { EncrypterInterface } from 'src/common/adapters/encrypter.interface';
 import { AuthTokenInterface } from 'src/common/adapters/auth-token.interface';
+import { MailerInterface } from 'src/common/adapters/mailer.interface';
 
 @Injectable()
 export class UserService {
@@ -14,6 +15,7 @@ export class UserService {
     @InjectRepository(User) private readonly repository: Repository<User>,
     @Inject(provider.ENCRYPTER) private readonly encrypter: EncrypterInterface,
     @Inject(provider.AUTH_TOKEN) private readonly authToken: AuthTokenInterface,
+    @Inject(provider.MAILER) private readonly mailer: MailerInterface,
   ) {}
 
   async getAll(): Promise<UserDto[]> {
@@ -37,6 +39,16 @@ export class UserService {
   }
 
   async register(data: UserDto): Promise<void> {
+    const hasUserUsingEmail = await this.repository.findOne({
+      where: {
+        email: data.email,
+      },
+    });
+
+    if (hasUserUsingEmail) {
+      throw new HttpException('Try another email!', 409);
+    }
+
     data.password = await this.encrypter.getHash(data.password);
     const user: User = new User();
     user.setName(data.name);
@@ -44,6 +56,15 @@ export class UserService {
     user.setPassword(data.password);
     user.setRole(data.role);
     await this.repository.insert(user);
+    await this.mailer.send({
+      subject: 'Welcome to api crud user',
+      from: process.env.EMAIL_FROM,
+      to: data.email,
+      template: 'welcome.hbs',
+      context: {
+        name: data.name,
+      },
+    });
   }
 
   async update(id: number, userDto: UserDto) {
