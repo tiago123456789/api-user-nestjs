@@ -1,6 +1,6 @@
 #!/bin/bash
 
-git pull master
+git pull origin master
 npm i 
 npm run build
 npm run typeorm:run-migrations
