@@ -21,22 +21,20 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
       },
     }),
     MailerModule.forRootAsync({
-      useFactory() {
+      inject: [ConfigService],
+      useFactory(config: ConfigService) {
         return {
           transport: {
-            host: 'sandbox.smtp.mailtrap.io',
-            port: 2525,
+            host: config.get('EMAIL_HOST'),
+            port: config.get('EMAIL_PORT'),
             auth: {
-              user: '32e29435b6d190',
-              pass: '92c9d71f3c77d9',
+              user: config.get('EMAIL_AUTH_USER'),
+              pass: config.get('EMAIL_AUTH_PASS'),
             },
           },
           template: {
             dir: __dirname + '../../../../views',
             adapter: new HandlebarsAdapter(),
-            options: {
-              strict: true,
-            },
           },
         };
       },
