@@ -16,7 +16,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          script: whoami
+          script: "cd ~/apps/api-user-nestjs && bash update_app.sh"
 
 
       
